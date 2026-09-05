@@ -7,6 +7,11 @@
 
 One MiniMax H3 FL2VA video, generated cooperatively by two NVIDIA DGX Sparks.
 
+**Credit:** the two-Spark recipe, vLLM-Omni Ray executor, image lineage, and
+August 2026 public-release acceptance are [Joey Rodriguez / joeynyc](https://github.com/joeynyc/MiniMax-H3-2x-DGX-Spark).
+This public fork keeps that work and documents GB10 CX7 RoCE bring-up so Ulysses
+SP=2 actually uses IB instead of falling back to TCP.
+
 This is a separate, experimental extension of the
 [single-Spark recipe](https://github.com/joeynyc/MiniMax-H3-DGX-Spark). It
 adds the network-capable diffusion executor that the pinned vLLM-Omni build
@@ -73,6 +78,27 @@ upstream support guarantees. Cache-DiT is a visually inspected speed/quality
 tradeoff, not a lossless mode. See
 [the complete acceptance record](docs/RESULTS.md) for request settings, hashes,
 quality observations, and experimental limits.
+
+### GB10 CX7 RoCE (this fork, 2026-09-04)
+
+On a later GB10 pair, Socket TCP made two-Spark Ulysses ~1-GPU latency
+(~90.5 s for the same 20-step 768×448 eager clip). Host `ib_write_bw` was
+already ~109 Gb/s. GPU NCCL failed until:
+
+1. IPv4-mapped RoCEv2 **GID index 3** (not fe80 index 1) with `NCCL_IB_ADDR_FAMILY=AF_INET`
+2. **Matched netdev MTU 1500** on both nodes (9000 vs 1500 → mlx 4096 vs 1024 → `IBV_WC_REM_INV_REQ_ERR`)
+3. Docker **`--ulimit memlock=-1`** (8 MiB default produced garbage RDMA lengths)
+4. `NCCL_IB_MTU=1024` to match mlx `active_mtu`
+5. `NCCL_DEBUG=WARN` (`INFO` filled the Ray worker log pipe and killed the actor after denoise)
+
+Measured CUDNN eager, no Cache-DiT, seed 42, 768×448, 56 frames, 20 steps:
+
+| Transport | Warm client | SHA vs Socket eager |
+|---|---:|---|
+| Socket TCP | 90.5 s | reference |
+| RoCE IB | **55.5 s** (repeat 58.4 s) | **identical** (SSIM 1.0) |
+
+See [docs/ROCE-GB10.md](docs/ROCE-GB10.md). Joey's August 4 acceptance (~46.6 s compile warm on working RoCE) remains the original published number; this fork's 55.5 s is eager on this pair after the fabric was actually using IB.
 
 ## How one video spans both machines
 

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- GB10 CX7 RoCE bring-up (2026-09-04): IPv4-mapped GID index 3, matched fabric
+  MTU 1500 / mlx active_mtu 1024, Docker `--ulimit memlock=-1`, `NCCL_IB_MTU=1024`,
+  `NCCL_GIN_ENABLE=0`, and `NCCL_DEBUG=WARN`. Socket TCP is the fallback, not
+  the default. On this pair, CUDNN eager no-cache 768×448 20-step T2VA went from
+  90.5 s over Socket to 55.5 s over IB with a SHA-identical MP4 (SSIM 1.0).
+  `NCCL_DEBUG=INFO` filled the Ray worker log pipe and killed the actor mid-clip.
+- Added `scripts/align-fabric-mtu.py` so start-two-sparks can ioctl both nodes
+  to 1500 without host sudo (NET_ADMIN host-net container).
+- Added `scripts/start-full-compute-profile.sh` (no Cache-DiT) and quality-speed
+  bench/SSIM helpers.
+
 - Repeated the complete live public-release acceptance on both Sparks using the
   branch-built image ID
   `sha256:09e6521356bbbb635048228d30e78a36c65352a48f7620c921d5aeff2d21b90b`.
