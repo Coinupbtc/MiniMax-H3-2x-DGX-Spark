@@ -34,3 +34,14 @@ but NCCL was not actually using RoCE for Ulysses ALLTOALL.
 Joey's 2026-08-04 public-release warm compile (~46.6 s full-compute) is the
 original acceptance on working RoCE. Do not treat Cache-DiT, sparse Sol-Attn,
 or a compile graph that fails SSIM against eager as that quality path.
+
+## One Spark, same SHA (2026-09-05)
+
+The quality MP4 is not two-Spark-only. On one GB10, CUDNN eager / no Cache-DiT
+produced **SHA `2d5e3d38…` identical** to the IB file (SSIM 1.0) in **136.1 s**.
+
+The published `minimax-h3-dgx-spark:sm121-fp8` image hardcodes `TORCH_SDPA`
+(SSIM 0.72 vs that file). Compose’s default **compile** path is SSIM 0.71.
+
+Full table: [quality-speed.md](quality-speed.md). One-Spark launcher:
+https://github.com/Coinupbtc/MiniMax-H3-1x-DGX-Spark

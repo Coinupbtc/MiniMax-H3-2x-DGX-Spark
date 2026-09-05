@@ -100,6 +100,21 @@ Measured CUDNN eager, no Cache-DiT, seed 42, 768×448, 56 frames, 20 steps:
 
 See [docs/ROCE-GB10.md](docs/ROCE-GB10.md). Joey's August 4 acceptance (~46.6 s compile warm on working RoCE) remains the original published number; this fork's 55.5 s is eager on this pair after the fabric was actually using IB.
 
+### One Spark, same quality SHA (2026-09-05)
+
+Same seed-42 clip on **one** GB10 with CUDNN eager / no Cache-DiT:
+
+| | Warm client | vs 2× IB SHA `2d5e3d38…` |
+|---|---:|---|
+| One Spark CUDNN eager | **136.1 s** | **identical** (SSIM 1.0) |
+| Baked Joey `sm121-fp8` (`TORCH_SDPA`) | 162.4 s | SSIM **0.72** — different picture |
+| Two-Spark CUDNN compile (compose default) | 84.8 s | SSIM **0.71** — different picture |
+
+~2.45× slower than two-Spark IB is Ulysses SP=2 going away, not a quality knob.
+The published one-Spark image hardcodes Torch-SDPA and ignores quality env.
+Launcher: [MiniMax-H3-1x-DGX-Spark](https://github.com/Coinupbtc/MiniMax-H3-1x-DGX-Spark).
+Full table: [docs/quality-speed.md](docs/quality-speed.md).
+
 ## How one video spans both machines
 
 ```text

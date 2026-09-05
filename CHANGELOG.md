@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- One-Spark quality proof (2026-09-05): same seed-42 768×448 20-step clip on
+  one GB10 with CUDNN eager / no Cache-DiT is SHA-identical to the two-Spark IB
+  file (`2d5e3d38…`, SSIM 1.0) at 136.1 s (~2.45× the 55.5 s IB pair). The
+  published `sm121-fp8` image hardcodes `TORCH_SDPA` (SSIM 0.72). Compose
+  compile remains a different picture (SSIM 0.71). Table: `docs/quality-speed.md`.
 - GB10 CX7 RoCE bring-up (2026-09-04): IPv4-mapped GID index 3, matched fabric
   MTU 1500 / mlx active_mtu 1024, Docker `--ulimit memlock=-1`, `NCCL_IB_MTU=1024`,
   `NCCL_GIN_ENABLE=0`, and `NCCL_DEBUG=WARN`. Socket TCP is the fallback, not
